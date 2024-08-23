@@ -41,24 +41,26 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
-class ForYouViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
-    syncManager: SyncManager,
-    private val analyticsHelper: AnalyticsHelper,
-    private val userDataRepository: UserDataRepository,
-    userNewsResourceRepository: UserNewsResourceRepository,
-    getFollowableTopics: GetFollowableTopicsUseCase,
+@HiltViewModel   ///@HiltViewModel：注解，表示这个 ViewModel 是通过 Dagger Hilt 管理的。
+class ForYouViewModel @Inject constructor(   /// @inject 使用依赖注入来获取 ViewModel 需要的依赖项。
+    private val savedStateHandle: SavedStateHandle,   ///保存和恢复 UI 状态的句柄。
+    syncManager: SyncManager,   ///用于管理数据同步状态。
+    private val analyticsHelper: AnalyticsHelper,   ///用于记录分析事件的帮助类。
+    private val userDataRepository: UserDataRepository,  ///用户数据仓库，用于处理用户相关的数据。
+    userNewsResourceRepository: UserNewsResourceRepository,  ///新闻资源仓库，用于处理新闻资源的数据。
+    getFollowableTopics: GetFollowableTopicsUseCase,   ///用例类，用于获取用户可以关注的主题。
 ) : ViewModel() {
 
+    ////shouldShowOnboarding：这是一个 Flow<Boolean>，表示是否应该显示引导界面。通过映射用户数据中的 shouldHideOnboarding 字段来确定是否隐藏引导界面。
     private val shouldShowOnboarding: Flow<Boolean> =
         userDataRepository.userData.map { !it.shouldHideOnboarding }
 
-    val deepLinkedNewsResource = savedStateHandle.getStateFlow<String?>(
+    ///这是一个 StateFlow，表示通过深度链接获取的特定新闻资源。
+    val deepLinkedNewsResource = savedStateHandle.getStateFlow<String?>(  ///从 SavedStateHandle 中获取带有默认值的状态流。
         key = LINKED_NEWS_RESOURCE_ID,
         null,
     )
-        .flatMapLatest { newsResourceId ->
+        .flatMapLatest { newsResourceId ->   //// 当深度链接中的新闻资源 ID 变化时，使用新的 ID 查询对应的新闻资源。
             if (newsResourceId == null) {
                 flowOf(emptyList())
             } else {
@@ -69,13 +71,14 @@ class ForYouViewModel @Inject constructor(
                 )
             }
         }
-        .map { it.firstOrNull() }
-        .stateIn(
+        .map { it.firstOrNull() }///获取查询结果中的第一个新闻资源，若无结果则返回 null。
+        .stateIn(     ///将 Flow 转换为 StateFlow，并在 ViewModel 的生命周期内管理其状态。
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = null,
         )
 
+    ////这是一个 StateFlow<Boolean>，表示数据是否正在同步。它通过 SyncManager 来获取同步状态。
     val isSyncing = syncManager.isSyncing
         .stateIn(
             scope = viewModelScope,
@@ -83,17 +86,19 @@ class ForYouViewModel @Inject constructor(
             initialValue = false,
         )
 
+    ///  StateFlow<NewsFeedUiState>，表示新闻资源的 UI 状态。
     val feedState: StateFlow<NewsFeedUiState> =
-        userNewsResourceRepository.observeAllForFollowedTopics()
-            .map(NewsFeedUiState::Success)
-            .stateIn(
+        userNewsResourceRepository.observeAllForFollowedTopics()  ///从新闻资源仓库中获取所有已关注主题的新闻资源。
+            .map(NewsFeedUiState::Success)   ///将新闻资源转换为 Success 状态。
+            .stateIn(   /// 将结果包装为 StateFlow，初始值为 Loading 状态。
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = NewsFeedUiState.Loading,
             )
 
+    ///StateFlow<OnboardingUiState>，表示引导界面的状态。
     val onboardingUiState: StateFlow<OnboardingUiState> =
-        combine(
+        combine(   /////将多个 Flow 合并为一个 Flow，根据是否显示引导界面和可关注主题来确定 OnboardingUiState。
             shouldShowOnboarding,
             getFollowableTopics(),
         ) { shouldShowOnboarding, topics ->
@@ -103,14 +108,15 @@ class ForYouViewModel @Inject constructor(
                 OnboardingUiState.NotShown
             }
         }
-            .stateIn(
+            .stateIn(    ///将结果包装为 StateFlow，初始值为 Loading 状态。
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = OnboardingUiState.Loading,
             )
 
+    /// 用于更新用户对某个主题的选择状态（关注或取消关注）。
     fun updateTopicSelection(topicId: String, isChecked: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch {  ///在 ViewModel 的作用域内启动一个协程，异步执行更新操作。
             userDataRepository.setTopicIdFollowed(topicId, isChecked)
         }
     }

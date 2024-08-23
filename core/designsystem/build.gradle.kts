@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 plugins {
+    ///用于表示使用的插件
     alias(libs.plugins.nowinandroid.android.library)
     alias(libs.plugins.nowinandroid.android.library.compose)
     alias(libs.plugins.nowinandroid.android.library.jacoco)

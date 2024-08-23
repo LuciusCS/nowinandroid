@@ -26,6 +26,7 @@ android {
 }
 
 dependencies {
+    ///依赖其他组件
     implementation(libs.accompanist.permissions)
     implementation(projects.core.data)
     implementation(projects.core.domain)

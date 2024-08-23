@@ -27,9 +27,6 @@ import com.google.samples.apps.nowinandroid.core.testing.util.captureMultiDevice
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState.Success
 import com.google.samples.apps.nowinandroid.core.ui.UserNewsResourcePreviewParameterProvider
-import com.google.samples.apps.nowinandroid.feature.foryou.OnboardingUiState.Loading
-import com.google.samples.apps.nowinandroid.feature.foryou.OnboardingUiState.NotShown
-import com.google.samples.apps.nowinandroid.feature.foryou.OnboardingUiState.Shown
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule

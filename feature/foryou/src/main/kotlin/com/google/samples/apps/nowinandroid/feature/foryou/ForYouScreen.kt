@@ -105,15 +105,23 @@ import com.google.samples.apps.nowinandroid.core.ui.UserNewsResourcePreviewParam
 import com.google.samples.apps.nowinandroid.core.ui.launchCustomChromeTab
 import com.google.samples.apps.nowinandroid.core.ui.newsFeed
 
-@Composable
-internal fun ForYouRoute(
-    onTopicClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: ForYouViewModel = hiltViewModel(),
+@Composable   /// @Composable：注解，表示这是一个可组合函数，用于声明 UI。
+internal fun ForYouRoute(   ///internal  修饰符，表示该函数只能在当前模块内访问。
+    onTopicClick: (String) -> Unit,   ///一个高阶函数参数，用于处理主题点击事件。String 参数是点击的主题的 ID 或名称。
+    modifier: Modifier = Modifier,  ///一个 Modifier 参数，用于配置 UI 元素的布局、行为和外观。默认值为 Modifier 的空实例。
+    viewModel: ForYouViewModel = hiltViewModel(),  ///ForYouViewModel 是一个 ViewModel 实例，使用 hiltViewModel() 函数自动注入 ViewModel 实例。它负责管理 UI 状态和业务逻辑。
 ) {
+
+    ///使用 collectAsStateWithLifecycle() 从 viewModel.onboardingUiState 中收集状态。
+    // onboardingUiState 是一个表示引导界面状态的 Flow。
+    ///关键字用于委托属性，使 onboardingUiState 委托给 Flow 的状态更新。
     val onboardingUiState by viewModel.onboardingUiState.collectAsStateWithLifecycle()
+
+    /// 收集 viewModel.feedState 的状态。feedState 表示当前新闻资源的状态（如加载中、加载完成等）。
     val feedState by viewModel.feedState.collectAsStateWithLifecycle()
+    ///收集 viewModel.isSyncing 的状态，表示应用是否正在与远程数据同步。
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
+    ///收集 viewModel.deepLinkedNewsResource 的状态，表示通过深度链接获取的特定新闻资源。
     val deepLinkedUserNewsResource by viewModel.deepLinkedNewsResource.collectAsStateWithLifecycle()
 
     ForYouScreen(
@@ -145,18 +153,28 @@ internal fun ForYouScreen(
     onNewsResourceViewed: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+
+    // 检查 Onboarding 状态是否正在加载
     val isOnboardingLoading = onboardingUiState is OnboardingUiState.Loading
+
+
+    //  // 检查 Feed 状态是否正在加载
     val isFeedLoading = feedState is NewsFeedUiState.Loading
 
     // This code should be called when the UI is ready for use and relates to Time To Full Display.
+    // // 当 UI 准备好显示时调用 ReportDrawnWhen 方法
+    //    // 这个方法通常用于记录从启动到完全显示的时间 (Time To Full Display, TTFD)
     ReportDrawnWhen { !isSyncing && !isOnboardingLoading && !isFeedLoading }
 
+    ////  // 计算当前可用的 feed 项数
     val itemsAvailable = feedItemsSize(feedState, onboardingUiState)
-
+    // 创建并记住一个 LazyStaggeredGridState 用于管理懒加载网格的滚动状态
     val state = rememberLazyStaggeredGridState()
+    //   // 使用 scrollableState 为滚动状态创建一个 scrollbarState
     val scrollbarState = state.scrollbarState(
         itemsAvailable = itemsAvailable,
     )
+    // 跟踪滚动卡顿 (Jank) 的发生，以便在性能分析中提供数据
     TrackScrollJank(scrollableState = state, stateName = "forYou:feed")
 
     Box(
@@ -164,20 +182,21 @@ internal fun ForYouScreen(
             .fillMaxSize(),
     ) {
         LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Adaptive(300.dp),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            columns = StaggeredGridCells.Adaptive(300.dp),   ///允许列的宽度自适应，列宽至少为 300.dp，如果屏幕宽度允许，它将会添加更多列以填满可用空间。
+            contentPadding = PaddingValues(16.dp),  /// 为整个网格内容设置内边距（padding），即内容与父容器边界之间的距离。
+            horizontalArrangement = Arrangement.spacedBy(16.dp), ///设置网格中的列之间的水平间距，即每列之间的间隔为 16.dp。
             verticalItemSpacing = 24.dp,
             modifier = Modifier
                 .testTag("forYou:feed"),
-            state = state,
+            state = state,  ///将滚动状态传递给 LazyVerticalStaggeredGrid，通常用来管理和控制滚动行为。
         ) {
             onboarding(
-                onboardingUiState = onboardingUiState,
-                onTopicCheckedChanged = onTopicCheckedChanged,
-                saveFollowedTopics = saveFollowedTopics,
+                onboardingUiState = onboardingUiState,   ///传递当前的 onboardingUiState 状态给 onboarding 函数，以根据状态显示不同的内容。
+                onTopicCheckedChanged = onTopicCheckedChanged,  /// 传递一个函数回调，处理主题选择状态的变化。
+                saveFollowedTopics = saveFollowedTopics,  //传递一个函数回调，处理保存关注的主题。
                 // Custom LayoutModifier to remove the enforced parent 16.dp contentPadding
                 // from the LazyVerticalGrid and enable edge-to-edge scrolling for this section
+                ///自定义 Modifier，通过手动测量和布局来调整元素的宽度。这里通过扩展约束的最大宽度（maxWidth + 32.dp.roundToPx()）来实现取消 LazyVerticalGrid 强制的父级 16.dp 内边距，并启用边到边的滚动效果。
                 interestsItemModifier = Modifier.layout { measurable, constraints ->
                     val placeable = measurable.measure(
                         constraints.copy(
@@ -191,18 +210,23 @@ internal fun ForYouScreen(
             )
 
             newsFeed(
-                feedState = feedState,
+                feedState = feedState,  ///: 传递当前的 feedState 状态给 newsFeed 函数，以根据状态显示新闻内容。
                 onNewsResourcesCheckedChanged = onNewsResourcesCheckedChanged,
                 onNewsResourceViewed = onNewsResourceViewed,
                 onTopicClick = onTopicClick,
             )
 
+            ///添加一个占据整个网格宽度的项目。span = StaggeredGridItemSpan.FullLine 表示这个项目将跨越所有列，
+            // contentType = "bottomSpacing" 用于标识这个项目的内容类型，以便于布局和优化。
             item(span = StaggeredGridItemSpan.FullLine, contentType = "bottomSpacing") {
+
+                /// 这个项目的内容是一个 Column，用于垂直排列子项。
                 Column {
                     Spacer(modifier = Modifier.height(8.dp))
                     // Add space for the content to clear the "offline" snackbar.
                     // TODO: Check that the Scaffold handles this correctly in NiaApp
                     // if (isOffline) Spacer(modifier = Modifier.height(48.dp))
+                    ///添加一个根据系统窗口插图高度调整的空白间距，确保内容不会与系统 UI（如导航栏）重叠。
                     Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
                 }
             }
@@ -242,8 +266,14 @@ internal fun ForYouScreen(
             ),
         )
     }
+
+    /// // 跟踪屏幕的查看事件 (screen view event)，用于分析用户行为
     TrackScreenViewEvent(screenName = "ForYou")
+
+    ///    // 请求通知权限的副作用
     NotificationPermissionEffect()
+
+    /// // 处理深度链接的副作用
     DeepLinkEffect(
         deepLinkedUserNewsResource,
         onDeepLinkOpened,

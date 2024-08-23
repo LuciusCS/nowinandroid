@@ -57,11 +57,19 @@ import javax.inject.Inject
 
 private const val TAG = "MainActivity"
 
+/**
+ *
+ * @AndroidEntryPoint：这是Dagger-Hilt的注解，表示该Activity是依赖注入的入口点。Hilt会在该类中自动生成所需的代码来进行依赖注入。
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     /**
      * Lazily inject [JankStats], which is used to track jank throughout the app.
+     *
+     * lazyStats：dagger.Lazy<JankStats>是Dagger提供的延迟初始化的包装类，
+     * 允许你在需要的时候才创建JankStats实例。JankStats用于跟踪应用中的卡顿现象（jank）。
+     *
      */
     @Inject
     lateinit var lazyStats: dagger.Lazy<JankStats>
@@ -78,17 +86,33 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var userNewsResourceRepository: UserNewsResourceRepository
 
+    /**
+     * viewModels()：这是Jetpack提供的委托，用于从ViewModelProvider中获取ViewModel实例。
+     */
     val viewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ///启用启动屏幕，使应用在加载期间显示启动画面。
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        /**
+         * 用mutableStateOf初始化的uiState变量用于跟踪UI的当前状态，默认值为Loading（表示加载中）
+         *
+         */
         var uiState: MainActivityUiState by mutableStateOf(Loading)
 
         // Update the uiState
+        /***
+         * 启动一个协程在Lifecycle范围内工作，确保在Lifecycle.State.STARTED（Activity可见）时进行状态更新。
+         */
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                /**
+                 * 从ViewModel中的uiState流收集数据，每次状态更新时都会更新uiState变量。
+                 */
+
                 viewModel.uiState
                     .onEach { uiState = it }
                     .collect()
@@ -98,6 +122,9 @@ class MainActivity : ComponentActivity() {
         // Keep the splash screen on-screen until the UI state is loaded. This condition is
         // evaluated each time the app needs to be redrawn so it should be fast to avoid blocking
         // the UI.
+        /**
+         * 定义条件以决定何时关闭启动屏幕。当uiState为Loading时，启动屏幕保持显示；当uiState为Success时，启动屏幕消失。
+         */
         splashScreen.setKeepOnScreenCondition {
             when (uiState) {
                 Loading -> true
@@ -108,15 +135,26 @@ class MainActivity : ComponentActivity() {
         // Turn off the decor fitting system windows, which allows us to handle insets,
         // including IME animations, and go edge-to-edge
         // This also sets up the initial system bar style based on the platform theme
+        //设置Activity全屏显示，使内容可以延伸到系统栏（如状态栏和导航栏）区域。
         enableEdgeToEdge()
 
+        /**
+         * setContent { ... }：这是Jetpack Compose的入口点，定义Activity的UI内容。
+         *
+         */
         setContent {
+            ///根据uiState判断是否使用暗色主题。
             val darkTheme = shouldUseDarkTheme(uiState)
 
             // Update the edge to edge configuration to match the theme
             // This is the same parameters as the default enableEdgeToEdge call, but we manually
             // resolve whether or not to show dark theme using uiState, since it can be different
             // than the configuration's dark theme value based on the user preference.
+            /**
+             * DisposableEffect(darkTheme) { ... }：根据主题配置更新Edge-to-Edge显示配置。
+             * DisposableEffect用于在darkTheme变化时触发副作用，并在其不再需要时清理。
+             *
+             */
             DisposableEffect(darkTheme) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
@@ -131,23 +169,42 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
 
+            /***
+             * rememberNiaAppState(...)：记住应用状态，结合网络监控器、新闻资源库、时区监控器等依赖项创建并维持应用状态。
+             *
+             */
             val appState = rememberNiaAppState(
                 networkMonitor = networkMonitor,
                 userNewsResourceRepository = userNewsResourceRepository,
                 timeZoneMonitor = timeZoneMonitor,
             )
 
+            /***
+             * 从应用状态中收集当前时区的状态值，并在UI中使用。
+             *
+             */
             val currentTimeZone by appState.currentTimeZone.collectAsStateWithLifecycle()
 
+            /**
+             * 将analyticsHelper和currentTimeZone提供给Compose树中的子组件，使它们可以访问这些依赖项。
+             */
             CompositionLocalProvider(
                 LocalAnalyticsHelper provides analyticsHelper,
                 LocalTimeZone provides currentTimeZone,
             ) {
+
+                /**
+                 * 应用自定义主题来包装子组件，支持暗色主题、安卓主题、以及动态主题的启用或禁用。
+                 */
                 NiaTheme(
                     darkTheme = darkTheme,
                     androidTheme = shouldUseAndroidTheme(uiState),
                     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
                 ) {
+
+                    /***
+                     * 应用的主要界面，根据appState显示内容。
+                     */
                     @OptIn(ExperimentalMaterial3AdaptiveApi::class)
                     NiaApp(appState)
                 }
