@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-internal class ConnectivityManagerNetworkMonitor @Inject constructor(
+internal class  ConnectivityManagerNetworkMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : NetworkMonitor {

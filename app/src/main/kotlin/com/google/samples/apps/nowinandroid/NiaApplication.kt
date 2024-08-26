@@ -38,6 +38,7 @@ class NiaApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         // Initialize Sync; the system responsible for keeping data in the app up to date.
+        //在应用启动时，一个用于同步所有仓库的 WorkManager 任务被加入队列
         Sync.initialize(context = this)
         profileVerifierLogger()
     }

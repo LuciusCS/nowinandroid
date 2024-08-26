@@ -18,6 +18,13 @@ package com.google.samples.apps.nowinandroid.sync.status
 
 /**
  * Subscribes to backend requested synchronization
+ *
+ * 实现类是 StubSyncSubscriber
+ *
+ * StubSyncSubscriber实现了SyncSubscriber接口，并且通过@Inject注解标记，Hilt会将它作为SyncSubscriber的实现类注入到SyncWorker中。
+ *
+ * Hilt通过注解和代码生成机制，自动处理SyncSubscriber接口与其实现类StubSyncSubscriber之间的依赖关系，并将它注入到需要的地方。
+ *
  */
 interface SyncSubscriber {
     suspend fun subscribe()

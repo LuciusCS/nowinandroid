@@ -23,6 +23,15 @@ import java.util.Properties
  * This class helps with loading Android `/assets` files, especially when running JVM unit tests.
  * It must remain on the root package for an easier [Class.getResource] with relative paths.
  * @see <a href="https://developer.android.com/reference/tools/gradle-api/7.3/com/android/build/api/dsl/UnitTestOptions">UnitTestOptions</a>
+ *
+ *
+ * JvmUnitTestDemoAssetManager: 用于在 JVM 环境下（如单元测试中）模拟 DemoAssetManager。
+ * config: 通过 javaClass.getResource 获取测试配置文件的资源路径。如果资源文件不存在，抛出异常并给出提示信息。
+ * properties: 读取配置文件中的属性，用于获取合并后的资源目录路径。
+ * assets: 表示资源目录的 File 对象。
+ * open(fileName: String): InputStream: 使用文件路径创建输入流，模拟从资产目录中打开文件。
+ *
+ *
  */
 
 internal object JvmUnitTestDemoAssetManager : DemoAssetManager {
@@ -37,5 +46,9 @@ internal object JvmUnitTestDemoAssetManager : DemoAssetManager {
     private val properties = Properties().apply { config.openStream().use(::load) }
     private val assets = File(properties["android_merged_assets"].toString())
 
+    /***
+     * open(fileName: String): InputStream: 使用文件路径创建输入流，模拟从资产目录中打开文件。
+     *
+     */
     override fun open(fileName: String): InputStream = File(assets, fileName).inputStream()
 }

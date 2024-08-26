@@ -26,6 +26,11 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
+/**
+ *  *
+ *  * @InstallIn(SingletonComponent::class) 这个注解指定了这个模块的生命周期范围。在这里，它被安装在SingletonComponent中，这意味着其中提供的依赖项将在应用程序的整个生命周期中都是单例的。
+ *  *
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object DispatchersModule {
@@ -35,5 +40,5 @@ object DispatchersModule {
 
     @Provides
     @Dispatcher(Default)
-    fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+        fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }

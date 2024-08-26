@@ -14,26 +14,36 @@
  * limitations under the License.
  */
 
+/**
+*定义使用 proto3 语法，这是 Protocol Buffers 的第三版语法，支持更加简洁的数据定义和更强的类型检查。
+*/
 syntax = "proto3";
 
 import "com/google/samples/apps/nowinandroid/data/dark_theme_config.proto";
 import "com/google/samples/apps/nowinandroid/data/theme_brand.proto";
 
+/**
+* 指定生成的 Java 类的包名为 com.google.samples.apps.nowinandroid.core.datastore。这确保生成的 Java 类文件位于这个包内。
+*/
 option java_package = "com.google.samples.apps.nowinandroid.core.datastore";
+
+/**
+* 指定每个 proto 消息类都生成一个独立的 Java 文件，而不是将所有类放在同一个文件中。这有助于代码的组织和管理。
+*/
 option java_multiple_files = true;
 
 message UserPreferences {
-    reserved 2;
-    repeated int32 deprecated_int_followed_topic_ids = 1;
-    int32 topicChangeListVersion = 3;
-    int32 authorChangeListVersion = 4;
-    int32 newsResourceChangeListVersion = 6;
-    repeated int32 deprecated_int_followed_author_ids = 7;
-    bool has_done_int_to_string_id_migration = 8;
-    repeated string deprecated_followed_topic_ids = 9;
-    repeated string deprecated_followed_author_ids = 10;
-    repeated string deprecated_bookmarked_news_resource_ids = 11;
-    bool has_done_list_to_map_migration = 12;
+    reserved 2;  //预留了 2 这个字段编号，表示这个编号以前被使用过但现在不再使用。通过保留，可以防止在未来版本中重新使用这个编号，从而避免数据兼容性问题。
+    repeated int32 deprecated_int_followed_topic_ids = 1; //这是一个 int32 类型的重复字段（列表）。这个字段的编号为 1，表示用户关注的主题的 ID 列表。
+    int32 topicChangeListVersion = 3;   //表示主题更改列表的版本号，这是一个 int32 类型的单值字段，编号为 3。
+    int32 authorChangeListVersion = 4;  //表示作者更改列表的版本号，这是一个 int32 类型的单值字段，编号为 4。
+    int32 newsResourceChangeListVersion = 6;  //，表示新闻资源更改列表的版本号，这是一个 int32 类型的单值字段，编号为 6。
+    repeated int32 deprecated_int_followed_author_ids = 7;  //这是一个 int32 类型的重复字段（列表）。这个字段的编号为 7，表示用户关注的作者的 ID 列表。
+    bool has_done_int_to_string_id_migration = 8;   //，这是一个布尔值字段，编号为 8。它用于标记用户是否已完成 ID 从 int 类型到 string 类型的迁移。
+    repeated string deprecated_followed_topic_ids = 9;  //这是一个 string 类型的重复字段（列表）。这个字段的编号为 9，表示用户关注的主题的字符串 ID 列表。
+    repeated string deprecated_followed_author_ids = 10;  //这是一个 string 类型的重复字段（列表）。这个字段的编号为 10，表示用户关注的作者的字符串 ID 列表。
+    repeated string deprecated_bookmarked_news_resource_ids = 11;  //这个字段的编号为 11，表示用户已收藏的新闻资源的字符串 ID 列表。
+    bool has_done_list_to_map_migration = 12;   //这是一个布尔值字段，编号为 12。它用于标记用户是否已完成从列表到映射的迁移。
 
     // Each map is used to store a set of string IDs. The bool has no meaning, but proto3 doesn't
     // have a Set type so this is the closest we can get to a Set.

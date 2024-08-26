@@ -18,6 +18,11 @@ package com.google.samples.apps.nowinandroid.core.network.demo
 
 import java.io.InputStream
 
+/***
+ *
+ * fun interface: Kotlin 的函数式接口，表示接口只有一个抽象方法。
+ * open(fileName: String): InputStream: 定义了一个方法，用于打开给定文件名的输入流。
+ */
 fun interface DemoAssetManager {
     fun open(fileName: String): InputStream
 }

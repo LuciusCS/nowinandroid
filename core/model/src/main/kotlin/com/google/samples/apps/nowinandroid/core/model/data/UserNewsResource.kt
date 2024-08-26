@@ -21,6 +21,10 @@ import kotlinx.datetime.Instant
 /**
  * A [NewsResource] with additional user information such as whether the user is following the
  * news resource's topics and whether they have saved (bookmarked) this news resource.
+ * Primary Constructor: 这是数据类的主要构造函数，它定义了所有属性并通过参数传递它们。这种构造函数用于在类内部或同一模块内创建 UserNewsResource 的实例。
+ * internal 修饰符:
+ * internal 表示这个构造函数只能在同一模块内使用。也就是说，其他模块无法直接使用这个构造函数来创建 UserNewsResource 实例。
+ * 这种设计通常用于控制类的实例化方式，避免外部模块直接访问和使用某些构造方式，从而保持一定的封装性。
  */
 data class UserNewsResource internal constructor(
     val id: String,
@@ -34,6 +38,10 @@ data class UserNewsResource internal constructor(
     val isSaved: Boolean,
     val hasBeenViewed: Boolean,
 ) {
+    /**
+     * Secondary Constructor: 这个构造函数提供了一种方便的方式来通过现有的 NewsResource 和 UserData 对象来创建 UserNewsResource 实例。它调用了主构造函数并传递了相应的参数。
+     * 作用: 这种设计可以简化对象的创建过程，尤其是当创建 UserNewsResource 需要将多个对象的信息整合到一起时。通过这个构造函数，调用者不需要手动构建所有的属性值，只需要传入 newsResource 和 userData，系统会自动处理这些数据。
+     */
     constructor(newsResource: NewsResource, userData: UserData) : this(
         id = newsResource.id,
         title = newsResource.title,

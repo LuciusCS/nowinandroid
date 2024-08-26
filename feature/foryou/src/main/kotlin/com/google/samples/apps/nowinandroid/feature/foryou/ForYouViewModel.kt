@@ -44,7 +44,14 @@ import javax.inject.Inject
 @HiltViewModel   ///@HiltViewModel：注解，表示这个 ViewModel 是通过 Dagger Hilt 管理的。
 class ForYouViewModel @Inject constructor(   /// @inject 使用依赖注入来获取 ViewModel 需要的依赖项。
     private val savedStateHandle: SavedStateHandle,   ///保存和恢复 UI 状态的句柄。
-    syncManager: SyncManager,   ///用于管理数据同步状态。
+    /**
+     *  * 当Hilt看到ForYouViewModel需要一个SyncManager时，
+     *  * 它会在依赖关系图中查找哪些类实现了SyncManager接口。如果只有一个类实现了该接口，
+     *  * 并且这个类（如WorkManagerSyncManager）的构造函数上有@Inject注解，Hilt会自动实例化WorkManagerSyncManager
+     *  * 并将其注入到syncManager参数中。
+     */
+
+    syncManager: SyncManager,   ///用于管理数据同步状态。注入的是 WorkManagerSyncManager  ，WorkManagerSyncManager是SyncManager的实现
     private val analyticsHelper: AnalyticsHelper,   ///用于记录分析事件的帮助类。
     private val userDataRepository: UserDataRepository,  ///用户数据仓库，用于处理用户相关的数据。
     userNewsResourceRepository: UserNewsResourceRepository,  ///新闻资源仓库，用于处理新闻资源的数据。
