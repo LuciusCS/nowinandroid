@@ -160,6 +160,11 @@ kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-pl
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
 
+
+## android-application 是别名
+##plugins {
+#    alias(libs.plugins.android.application) apply false
+#}
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
@@ -181,6 +186,7 @@ room = { id = "androidx.room", version.ref = "room" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
 
 # Plugins defined by this project
+## 下面的依赖是在 build-login 模块的 build.gradle.kts 中进行注册的依赖
 nowinandroid-android-application = { id = "nowinandroid.android.application", version = "unspecified" }
 nowinandroid-android-application-compose = { id = "nowinandroid.android.application.compose", version = "unspecified" }
 nowinandroid-android-application-firebase = { id = "nowinandroid.android.application.firebase", version = "unspecified" }

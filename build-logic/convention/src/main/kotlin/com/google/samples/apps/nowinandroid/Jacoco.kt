@@ -33,6 +33,9 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import java.util.Locale
 
+/**
+ * 代码覆盖排除以下文件
+ */
 private val coverageExclusions = listOf(
     // Android
     "**/R.class",

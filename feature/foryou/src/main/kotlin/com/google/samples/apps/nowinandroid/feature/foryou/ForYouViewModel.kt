@@ -172,3 +172,47 @@ private fun AnalyticsHelper.logNewsDeepLinkOpen(newsResourceId: String) =
             ),
         ),
     )
+
+/**
+ * 在 Jetpack Compose 中，hiltViewModel() 和 by viewModels() 都可以用于获取 ViewModel 实例，但它们的使用场景和目的有所不同。让我们详细解释这两种方式的区别和使用原因。
+ *
+ * 1. hiltViewModel() 在 @Composable 函数中的使用
+ * kotlin
+ * Copy code
+ * @Composable
+ * internal fun ForYouRoute(
+ *     onTopicClick: (String) -> Unit,
+ *     modifier: Modifier = Modifier,
+ *     viewModel: ForYouViewModel = hiltViewModel(),
+ * ) {}
+ * 作用
+ *
+ * 获取 ViewModel 实例：hiltViewModel() 是 Jetpack Compose 提供的一个函数，用于在 @Composable 函数中获取由 Hilt 管理的 ViewModel 实例。
+ * 自动注入依赖：通过 hiltViewModel()，你可以在不显式声明依赖的情况下，自动获得由 Hilt 注入的 ViewModel。它会使用与该 @Composable 函数相对应的
+ * ViewModelStoreOwner（通常是当前的 NavBackStackEntry 或最近的 Activity 或 Fragment）来创建或获取 ViewModel。
+ * 为什么在 @Composable 中使用
+ *
+ * 简化代码：在 @Composable 函数中直接使用 hiltViewModel() 可以简化代码结构，因为它不需要手动传递 ViewModel 实例。
+ * 作用域一致性：hiltViewModel() 保证了 ViewModel 的生命周期与 @Composable 函数的调用者一致，这通常是基于导航堆栈或更高层次的 Activity/Fragment。
+ * 2. by viewModels() 在 @AndroidEntryPoint 的 Activity 或 Fragment 中的使用
+ * kotlin
+ * Copy code
+ * @AndroidEntryPoint
+ * class MainActivity : ComponentActivity() {
+ *     val viewModel: MainActivityViewModel by viewModels()
+ * }
+ * 作用
+ *
+ * 获取 ViewModel 实例：by viewModels() 是一种 Kotlin 属性委托，用于在 Activity 或 Fragment 中获取 ViewModel 实例。它利用了 Android ViewModelProvider 来管理 ViewModel 的创建和生命周期。
+ * 与 Hilt 集成：当 Activity 或 Fragment 被 @AndroidEntryPoint 注解标记时，Hilt 会自动接管 ViewModelProvider.Factory，确保依赖注入到 ViewModel 中。
+ * 为什么在 Activity 或 Fragment 中使用
+ *
+ * 明确的 ViewModel 生命周期：在 Activity 或 Fragment 中使用 by viewModels() 可以明确地将 ViewModel 的生命周期与 Activity 或 Fragment 绑定，确保 ViewModel 的存活时间与 UI 组件的一致。
+ * 与传统 Android 开发兼容：by viewModels() 是一种更接近传统 Android 开发的方式，在转向 Compose 之前，开发者可能已经习惯了这种方式，因此在 Activity 和 Fragment 中继续使用它具有更高的兼容性。
+ * 3. 总结
+ * hiltViewModel()：主要在 @Composable 函数中使用，简化了 ViewModel 的获取和依赖注入，确保 ViewModel 的生命周期与 Composable 调用者一致。
+ * by viewModels()：在 Activity 或 Fragment 中使用，明确了 ViewModel 的生命周期与 Activity 或 Fragment 绑定，同时与传统 Android 开发模式兼容。
+ * 两者的核心区别在于它们应用的上下文和设计目标。hiltViewModel() 更适合 Jetpack Compose 的函数式 UI 架构，而 by viewModels() 则保留了与传统 Android ViewModel 使用模式的一致性。
+ *
+ *
+ */

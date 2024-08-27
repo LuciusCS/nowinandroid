@@ -57,6 +57,7 @@ tasks {
 
 gradlePlugin {
     plugins {
+        ///用于注册插件以及插件使用时引用的名字
         register("androidApplicationCompose") {
             id = "nowinandroid.android.application.compose"
             implementationClass = "AndroidApplicationComposeConventionPlugin"

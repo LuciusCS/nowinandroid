@@ -15,6 +15,8 @@
  */
 
 plugins {
+    //这里只是使用了插件，跟引用子项目进行区分 include(":feature:foryou")
+
     alias(libs.plugins.nowinandroid.android.feature)
     alias(libs.plugins.nowinandroid.android.library.compose)
     alias(libs.plugins.nowinandroid.android.library.jacoco)

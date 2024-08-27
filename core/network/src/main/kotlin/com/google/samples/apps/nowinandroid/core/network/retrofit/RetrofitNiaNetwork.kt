@@ -78,6 +78,8 @@ private interface RetrofitNiaNetworkApi {
 /**
  * 解释: 定义了一个私有常量 NIA_BASE_URL，其值来自 BuildConfig.BACKEND_URL。这是 Retrofit 使用的基 URL（base URL）
  * ，通常是在 build.gradle 文件中通过 buildConfigField 配置的。
+ *
+ * BACKEND_URL 在 secrets.defaults.properties 中进行调用
  */
 private const val NIA_BASE_URL = BuildConfig.BACKEND_URL
 
