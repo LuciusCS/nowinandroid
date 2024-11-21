@@ -33,7 +33,8 @@ import javax.inject.Inject
  *
  * @HiltViewModel：这是Dagger-Hilt的注解，表示这个ViewModel可以通过Hilt进行依赖注入。Hilt会自动管理ViewModel的生命周期和依赖关系。
  *
- * class MainActivityViewModel @Inject constructor(...): ViewModel()：定义了MainActivityViewModel类，它继承自ViewModel。通过@Inject constructor，Hilt会自动注入userDataRepository依赖。
+ * class MainActivityViewModel @Inject constructor(...): ViewModel()：定义了MainActivityViewModel类，它继承自ViewModel。
+ * 通过@Inject constructor，Hilt会自动注入userDataRepository依赖。
  *
  * userDataRepository: UserDataRepository：MainActivityViewModel的构造函数依赖于UserDataRepository，这个仓库类负责提供用户数据。
  */

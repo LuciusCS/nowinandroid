@@ -110,9 +110,6 @@ private const val TAG = "MainActivity"
 /**
  *
  * @AndroidEntryPoint：这是Dagger-Hilt的注解，表示该Activity是依赖注入的入口点。Hilt会在该类中自动生成所需的代码来进行依赖注入。
- *
- *
- *
  * 的主要作用是将 Hilt 的依赖注入能力扩展到 Android 框架类（如 Activity、Fragment、Service 等）中。通过使用这个注解，你可以让 Hilt 自动地为这些类生成并注入依赖。
  *
  * 具体来说，@AndroidEntryPoint 会：

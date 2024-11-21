@@ -27,6 +27,8 @@ import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginE
 /**
  * Configure Compose-specific options
  * configureAndroidCompose: 定义一个内部函数，负责配置 Android 项目中的 Jetpack Compose 构建选项。它扩展 Project，意味着可以直接在 Project 对象上调用。
+ *
+ *  Project.configureAndroidCompose 是拓展函数的一种写法
  * configureAndroidCompose: 一个配置函数，启用 Compose 支持，并添加相关依赖、测试配置和编译器扩展。
  *
  */
@@ -54,7 +56,8 @@ internal fun Project.configureAndroidCompose(
         dependencies {
 
             /**
-             * libs.findLibrary("androidx-compose-bom").get(): 查找并获取 androidx-compose-bom 库，它是 Jetpack Compose 的 Bill of Materials (BOM)，用于统一管理 Compose 相关库的版本。
+             * libs.findLibrary("androidx-compose-bom").get(): 查找并获取 androidx-compose-bom 库，
+             * 它是 Jetpack Compose 的 Bill of Materials (BOM)，用于统一管理 Compose 相关库的版本。
              */
             val bom = libs.findLibrary("androidx-compose-bom").get()
 

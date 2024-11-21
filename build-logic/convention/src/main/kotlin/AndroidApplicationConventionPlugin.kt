@@ -98,9 +98,11 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
              *
              *  extensions: 这是 Project 的一个属性，它管理和提供对所有已添加到项目中的扩展（extensions）的访问。这些扩展可以通过插件添加，或者是 Gradle 本身提供的。
              * configure<T>: 这是一个用于配置扩展的函数。它的作用是接收某种类型的扩展（在这里是 ApplicationAndroidComponentsExtension），然后对其进行配置。
-             * <ApplicationAndroidComponentsExtension>: 这是指定要配置的扩展的类型。在 Android 项目中，ApplicationAndroidComponentsExtension 是由 Android Gradle Plugin 提供的一个扩展，用于管理和配置 Android 应用组件（如活动、服务等）的相关设置和任务。
+             * <ApplicationAndroidComponentsExtension>: 这是指定要配置的扩展的类型。在 Android 项目中，
+             * ApplicationAndroidComponentsExtension 是由 Android Gradle Plugin 提供的一个扩展，用于管理和配置 Android 应用组件（如活动、服务等）的相关设置和任务。
              * 作用与效果
-             * 查找并配置现有扩展: extensions.configure<ApplicationAndroidComponentsExtension> 通过 extensions 查找当前项目中已存在的 ApplicationAndroidComponentsExtension 实例，然后进入该实例的上下文进行配置。
+             * 查找并配置现有扩展: extensions.configure<ApplicationAndroidComponentsExtension> 通过 extensions 查找当前项目中已存在的
+             * ApplicationAndroidComponentsExtension 实例，然后进入该实例的上下文进行配置。
              * 追加或修改配置: 在 configure 的 lambda 块中，开发者可以追加或修改 ApplicationAndroidComponentsExtension 的现有配置。比如添加自定义任务、修改已有任务的行为、设置额外的编译选项等。
              *
              *
@@ -113,7 +115,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                  */
                 configurePrintApksTask(this)
                 /**
-                 * configureBadgingTasks(extensions.getByType<BaseExtension>(), this): 通过 extensions.getByType<BaseExtension>() 获取项目中的 BaseExtension 实例，并将其与当前的 ApplicationAndroidComponentsExtension
+                 * configureBadgingTasks(extensions.getByType<BaseExtension>(), this): 通过 extensions.getByType<BaseExtension>()
+                 * 获取项目中的 BaseExtension 实例，并将其与当前的 ApplicationAndroidComponentsExtension
                  * 一起传递给 configureBadgingTasks 方法。configureBadgingTasks 可能用于设置应用徽章任务，例如为应用程序生成带有版本信息的图标。
                  */
                 configureBadgingTasks(extensions.getByType<BaseExtension>(), this)
