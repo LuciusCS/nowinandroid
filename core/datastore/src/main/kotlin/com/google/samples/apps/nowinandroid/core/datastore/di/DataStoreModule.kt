@@ -36,6 +36,22 @@ import kotlinx.coroutines.CoroutineScope
 import javax.inject.Singleton
 
 /**
+ * 完整执行过程总结
+ * 1、应用启动时：
+ *     Hilt 初始化 SingletonComponent。
+ *     DataStoreModule 加载，但 providesUserPreferencesDataStore 只有在首次需要时调用。
+ * 2、首次访问 DataStore 时：
+ *       创建 DataStore 实例。
+ *        检查存储文件（如 user_preferences.pb），并尝试加载数据。
+ * 3、每次访问存储文件时：
+ *        如果文件不匹配或需要更新版本，则触发 migrations。
+ *        如果文件已经是最新状态，则跳过迁移。
+ * 4、迁移的触发频率：
+ *        只在文件版本不匹配时触发，不是每次启动都执行。
+ *       如果文件格式和版本始终匹配，则迁移不会执行。
+ */
+
+/**
  *
  * 使用 Hilt 提供依赖注入的 Kotlin 模块，主要用于创建和提供一个 DataStore 对象。
  * DataStore 是 Android Jetpack 中用于存储数据的组件，类似于 SharedPreferences，但提供了更好的类型安全性和异步处理能力。
@@ -101,3 +117,34 @@ object DataStoreModule {
             context.dataStoreFile("user_preferences.pb")
         }
 }
+
+/**
+ *
+ * 在应用安装后，userPreferences.data 能够读取到数据的原因是因为 DataStore 在第一次访问时会自动加载存储在磁盘上的数据。如果这是应用的第一次运行，DataStore 会创建一个新的存储文件并使用默认值初始化它。
+ *
+ * DataStore 初始化及数据读取流程
+ * 1、 安装时首次运行：
+ *       当应用第一次安装并运行时，DataStore 会自动创建一个新的数据文件（例如 user_preferences.pb）。这个文件在首次访问时将是空的。
+ *       在这种情况下，DataStore 会使用 默认值 来初始化数据。对于没有显式赋值的字段，默认值会被使用（例如 0、false 或空列表等）。
+ * 2、 首次读取时的行为：
+ *        当你调用 userPreferences.data（例如通过 collect 或 first 等操作），DataStore 会读取 user_preferences.pb 文件中的内容。
+ *        如果是第一次访问并且文件为空，DataStore 会使用你在 UserPreferences protobuf 文件中定义的默认值初始化所有字段。
+ * 3、 为什么能读取到数据：
+ *        默认值初始化：即使应用第一次运行，DataStore 也会通过默认值初始化所有字段，而不是返回 null 或引发错误。例如，int32 字段的默认值是 0，布尔字段的默认值是 false，重复字段的默认值是空列表。
+ *        序列化和反序列化：DataStore 会根据定义的 UserPreferences 类对数据进行序列化和反序列化处理。即使没有数据存储在文件中，它也会为每个字段提供默认值。这样，即使没有任何数据，应用仍然可以正常工作。
+ * 4、 后续访问：
+ *     如果数据已存储在磁盘上（如应用已使用一段时间并写入了 user_preferences.pb 文件），DataStore 会加载已存储的数据。如果数据没有被修改，返回的将是上次存储的数据；如果有更新，DataStore 会在读取时自动反序列化并提供最新数据。
+ *
+ *
+ *
+ * 详细说明：
+ * 1、 DataStore 的工作机制：
+ *        DataStore 是基于存储的文件系统（如磁盘）来持久化数据的。如果在应用第一次启动时文件不存在，它会创建一个新文件并写入数据（如果没有显式写入数据，它会使用默认值）。
+ *        userPreferences.data 是通过 Flow 来观察的数据，当你调用它时，DataStore 会触发对文件的读取，解析成对应的数据结构（例如 UserPreferences），并返回给调用者。
+ * 2、默认值的作用：
+ * proto3 中的字段有预设的默认值。例如，int32 类型字段的默认值是 0，布尔类型的默认值是 false，字符串类型的默认值是空字符串，等等。通过这些默认值，即使没有显式的存储数据，应用仍然可以读取到这些默认值。
+ *
+ *
+ * 总结：
+ * 当应用首次安装并运行时，DataStore 会自动初始化存储文件，并根据 UserPreferences protobuf 的定义为每个字段赋予默认值。即使没有任何用户数据，读取 userPreferences.data 时会返回这些默认值，因此应用在启动时能正常读取数据。
+ */

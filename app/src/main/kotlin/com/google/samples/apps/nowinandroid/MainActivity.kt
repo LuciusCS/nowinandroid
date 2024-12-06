@@ -233,17 +233,33 @@ class MainActivity : ComponentActivity() {
         // Update the uiState
         /***
          * 启动一个协程在Lifecycle范围内工作，确保在Lifecycle.State.STARTED（Activity可见）时进行状态更新。
+         *
+         * lifecycleScope.launch 启动了一个协程来收集 viewModel.uiState 的状态变化。
          */
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
                 /**
                  * 从ViewModel中的uiState流收集数据，每次状态更新时都会更新uiState变量。
+                 *
+                 * collect() 的作用是 启动对 Flow 的收集，从而触发 Flow 的执行，并处理每个发射的值。
+                 *
+                 * collect() 的作用
+                 * 启动数据流的收集：
+                 * collect 是挂起函数，表示协程会等待并持续收集 uiState 中的数据，直到 Flow 完成或协程被取消。
+                 * 触发 Flow 的数据发射：
+                 * 如果 uiState 是冷 Flow（由 stateIn 转换后，它是热的 StateFlow），collect 会开始接收最新的状态值。
+                 * 响应发射的每个值：
+                 * onEach { uiState = it } 是一个中间操作符，每次 Flow 发射值时都会执行操作。在这里，它将发射的值赋给局部变量 uiState。
+                 * 阻塞协程：
+                 * collect 会阻塞当前协程，直到 Flow 发射完毕（如果 Flow 是无穷的，如 StateFlow，则协程不会自动结束）。
+                 *
+                 *
                  */
 
                 viewModel.uiState
-                    .onEach { uiState = it }
-                    .collect()
+                    .onEach { uiState = it } // 对每个发射的值执行操作
+                    .collect()    // 启动收集流程
             }
         }
 
@@ -254,6 +270,38 @@ class MainActivity : ComponentActivity() {
          * 定义条件以决定何时关闭启动屏幕。当uiState为Loading时，启动屏幕保持显示；当uiState为Success时，启动屏幕消失。
          *
          * uiState初始化使用的 是 by mutableStateOf(Loading)，当它的值该改变时下面的代码就会被触发
+         *
+         * splashScreen.setKeepOnScreenCondition 会持续等待 uiState 从 Loading 变为 Success，直到条件返回 false，
+         * 才会继续往下执行，隐藏 SplashScreen 并显示应用的主界面。因此，SplashScreen 会持续显示直到 uiState 更新为 Success。
+         *
+         * splashScreen.setKeepOnScreenCondition 会不断检查这个条件。只要 uiState 仍然是 Loading，它就会继续保持 SplashScreen 显示，而不继续执行后面的 UI 渲染。
+         *
+         * SplashScreen 不会造成卡顿，因为它是由协程控制的异步操作，且主线程不会被阻塞。
+         * 但是，如果 uiState 更新非常慢或存在其他阻塞操作，可能会导致 SplashScreen 显示时间过长，影响用户体验。因此，建议添加超时机制或优化 uiState 的更新速度。
+         *
+         *
+         * 为什么不会造成卡顿？
+         * lifecycleScope.launch 的协程：
+         * 在 onCreate 中，你用 lifecycleScope.launch 启动了一个协程，并且通过 lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) 来收集 viewModel.uiState 的状态变化。
+         * 这个协程是异步执行的，不会阻塞 UI 线程。因此，即使 uiState 仍然是 Loading，主线程也可以继续渲染界面，不会被阻塞。
+         * SplashScreen 的条件评估：
+         * splashScreen.setKeepOnScreenCondition 会在 UI 状态变化时重新评估。在 UI 状态是 Loading 时，SplashScreen 会保持显示。条件被满足时，SplashScreen 会消失，并且 setContent 中的界面才会被显示出来。
+         * 这种评估是即时的，只要 uiState 发生变化，SplashScreen 就会重新判断是否需要显示，并及时更新。
+         *
+         *
+         * 在 SplashScreen 显示期间，协程正在收集 viewModel.uiState 的变化。
+         * 一旦 viewModel.uiState 变成 Success（即加载完成或其他逻辑更新），SplashScreen 的显示条件变为 false，SplashScreen 就会隐藏，主界面 (setContent {} 中的内容) 才会显示。
+         *
+         *
+         * SplashScreen 控制界面的显示：
+         * SplashScreen 并不会直接 阻塞主线程，它只是控制主界面显示的时机。通过 setKeepOnScreenCondition 控制主界面（setContent {}）何时显示，直到满足 Success 的条件时，才会停止显示 SplashScreen，并显示主界面。
+         * 协程不会阻塞 UI 线程：
+         * lifecycleScope.launch 启动了一个协程来异步收集 uiState 的变化。这意味着协程不会阻塞主线程，主线程仍然可以继续执行其他代码。例如，setContent {} 和界面的渲染不会被这个协程阻塞。
+         *
+         *
+         * SplashScreen 和 setContent {} 的关系：
+         * SplashScreen 并不会阻塞 setContent {} 的执行，而是控制何时显示 setContent 的内容。
+         * SplashScreen 会根据 uiState 的值决定何时移除自己，进而显示 setContent 中的界面。但它不会阻塞 setContent {} 中代码的执行，只是主界面的展示时机由 SplashScreen 来控制。
          *
          */
         splashScreen.setKeepOnScreenCondition {
@@ -271,9 +319,24 @@ class MainActivity : ComponentActivity() {
 
         /**
          * setContent { ... }：这是Jetpack Compose的入口点，定义Activity的UI内容。
+
+         *  为什么 setContent 可以省略 parent 参数？
+         *  parent 这是一个可选参数，如果你不传递这个参数，Kotlin 会自动使用 null 作为默认值，因此 你可以直接省略它，只传递 content 参数即可：
+         *  相当于
+         *  setContent(parent = null) {
+         *     // Composable 内容
+         * }
          *
          */
         setContent {
+
+            /***
+             * setContent 接受一个 Lambda 表达式，且这个 Lambda 是 @Composable 类型。在 Jetpack Compose 中，一个 @Composable 函数可以调用其他 @Composable 函数，这正是 Compose 构建 UI 树的方式。
+             *
+             * 为什么多个 @Composable 函数可以嵌套？
+             * @Composable 函数可以互相调用，形成一个层级结构，也就是我们所说的 UI 树。
+             * setContent 是 UI 树的根，它的 content 参数内所有的 @Composable 函数都会被 依次执行并组成完整的界面。
+             */
             ///根据uiState判断是否使用暗色主题。
             val darkTheme = shouldUseDarkTheme(uiState)
 
@@ -284,6 +347,20 @@ class MainActivity : ComponentActivity() {
             /**
              * DisposableEffect(darkTheme) { ... }：根据主题配置更新Edge-to-Edge显示配置。
              * DisposableEffect用于在darkTheme变化时触发副作用，并在其不再需要时清理。
+             *
+             * darkTheme 的值：当 darkTheme 为 true 时，状态栏和导航栏会采用透明背景或者深色背景；而当 darkTheme 为 false 时，则可能使用浅色或不同的背景效果。
+             * 首次渲染和主题切换时：DisposableEffect 会在 darkTheme 值发生变化时重新执行。因此，这段代码会在应用启动时、主题从浅色切换到深色或从深色切换到浅色时生效。
+             *
+             * DisposableEffect 是一个用于管理 “副作用（Side Effects）” 的 Composable 函数。
+             * 副作用指的是那些不会直接影响 UI 树的操作，比如：启用沉浸式状态栏 (enableEdgeToEdge)、注册或注销一个资源，比如监听器或订阅事件。
+             *
+             * 虽然 CompositionLocalProvider 和 DisposableEffect 是两个独立的工具，但它们经常被一起使用，原因如下：
+             * CompositionLocalProvider 负责为 UI 树中的组件提供全局或局部的依赖数据。
+             * 例如：LocalTimeZone 和 LocalAnalyticsHelper 可能是 UI 树中的多个子组件需要的依赖。
+             * DisposableEffect 负责执行系统级的操作或管理副作用。
+             * 例如：enableEdgeToEdge 修改了系统状态栏的外观，而这不属于 UI 树的一部分。
+             * 两者虽然独立，但一个负责构建 UI 树，另一个负责在 UI 外部进行副作用管理，共同构成完整的应用逻辑。
+             *
              *
              */
             DisposableEffect(darkTheme) {
@@ -318,6 +395,12 @@ class MainActivity : ComponentActivity() {
 
             /**
              * 将analyticsHelper和currentTimeZone提供给Compose树中的子组件，使它们可以访问这些依赖项。
+             *
+             * 详细解释
+             * https://android-docs.cn/develop/ui/compose/compositionlocal
+             *
+             * CompositionLocalProvider最后的参数是
+             *  content: @Composable () -> Unit
              */
             CompositionLocalProvider(
                 LocalAnalyticsHelper provides analyticsHelper,
@@ -333,6 +416,26 @@ class MainActivity : ComponentActivity() {
                     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
                 ) {
 
+                    /**
+                     * NiaTheme的 最后一个参数是  content: @Composable () -> Unit,
+                     * content 参数是一个 高阶函数，它的类型是 @Composable () -> Unit，表示：
+                     * @Composable：这是一个 Compose 函数。
+                     * () -> Unit：表示不接受任何参数，也不返回任何值的 Lambda 表达式。
+                     *
+                     * 因为 content 是函数的最后一个参数，并且是一个 Lambda 表达式，所以在调用 NiaTheme 时可以使用大括号 {} 来代替普通的参数传递。
+                     *
+                     *
+                     *  等价与
+                     * NiaTheme(
+                     *     darkTheme = darkTheme,
+                     *     androidTheme = shouldUseAndroidTheme(uiState),
+                     *     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
+                     *     content = {
+                     *         @OptIn(ExperimentalMaterial3AdaptiveApi::class)
+                     *         NiaApp(appState)
+                     *     }
+                     * )
+                     */
                     /***
                      * 应用的主要界面，根据appState显示内容。
                      */
@@ -484,6 +587,32 @@ private val darkScrim = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
  * 总结
  * 虽然 @AndroidEntryPoint 是 Hilt 提供的一个非常便捷的注解，用于简化 Android 组件中的依赖注入，
  * 但你可以通过 Dagger 的 @Component、@Subcomponent、@ContributesAndroidInjector，甚至其他依赖注入框架如 Koin 来实现类似的功能。这些方法虽然不完全等同于 @AndroidEntryPoint，但它们各自有其适用场景和灵活性。
+ *
+ *
+ *
+ *
+ */
+
+/**
+ *
+ *
+ *
+ *
+ * 特性	            sealed interface        	    sealed class            	sealed object	                 enum class
+ * 合法性	            ✅ 合法	                        ✅ 合法	                    ✅ 合法	              ❌ 不支持 sealed enum
+ * 继承类型	    可以有多个实现类，支持多重继承	    只能有一个子类，支持单继承	        不能被继承，只能单例       	枚举值是固定的，不能扩展
+ * 是否存储状态	    不能存储状态，仅定义行为	       可以存储状态和实现逻辑	        不能存储状态，仅用于单例	    可以存储状态和实现逻辑
+ * 多重继承	            支持	                            不支持	                    不支持                     	不支持
+ * 类型安全性	    可以在 when 中安全处理所有实现类	可以在 when 中安全处理所有子类	可以在 when 中安全处理所有子对象     可以在 when 中处理所有枚举值
+ * 典型使用场景	    事件、操作、行为	                状态、结果、数据                	单例状态、导航目的地	        常量、枚举值、固定集合
+ *
+ *
+ *
+ * 场景	                    推荐使用类型	                示例
+ * 定义一组事件或操作	      sealed interface	    UI 事件、用户操作
+ * 定义一组具有状态的类型	    sealed class	    网络请求结果、UI 状态
+ * 定义一组唯一的状态	        sealed object   	网络状态、导航目的地
+ * 定义固定的常量集合	        enum class	        星期、颜色、用户角色
  *
  *
  *

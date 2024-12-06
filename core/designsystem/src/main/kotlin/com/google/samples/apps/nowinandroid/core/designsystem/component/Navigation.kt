@@ -122,6 +122,19 @@ fun NiaNavigationBar(
  * @param label The item text label content.
  * @param alwaysShowLabel Whether to always show the label for this item. If false, the label will
  * only be shown when this item is selected.
+ *
+ * Now in Android 导航栏项，包含图标和标签内容插槽。封装了 Material 3 的 [NavigationBarItem] 组件。
+ * 参数说明：
+ *
+ * selected：是否选中该项。
+ * onClick：当选中该项时调用的回调函数。
+ * icon：该项的图标内容。
+ * modifier：应用于此项的修饰符。
+ * selectedIcon：当选中时显示的图标内容。
+ * enabled：控制该项的启用状态。当为 false 时，该项不可点击，并在辅助功能服务中显示为禁用状态。
+ * label：该项的文本标签内容。
+ * alwaysShowLabel：是否始终显示标签。如果为 false，标签仅在选中此项时显示。
+ *
  */
 @Composable
 fun NiaNavigationRailItem(

@@ -41,10 +41,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
+    /**
+     * 在这里注入的UserDataRepository ，实际注入的是 OfflineFirstUserDataRepository
+     *
+     * 这是由DataModule中的 bindsUserDataRepository决定的
+     *
+     */
     userDataRepository: UserDataRepository,
 ) : ViewModel() {
     /**
      * 这是一个StateFlow类型的属性，用于公开当前的UI状态。StateFlow是一个持有状态的可观察流，当状态改变时会发出新的数据。
+     *
+     * 即时是首次安装 userDataRepository.userData  也会读取到数据，因为DataStore 会给需要保存的 UserPreferences 的所有值默认为 0 或者 false
      */
     val uiState: StateFlow<MainActivityUiState> = userDataRepository.userData.map {
 
@@ -52,6 +60,9 @@ class MainActivityViewModel @Inject constructor(
          * userDataRepository.userData.map { Success(it) }：
          * 从userDataRepository获取用户数据流（Flow<UserData>），并将其映射为MainActivityUiState.Success状态。
          * .map { Success(it) }：map操作符用于将用户数据包装成Success状态。
+         *
+         *
+         * 这里只要userData有数据，那么就会返回成功
          */
 
         Success(it)

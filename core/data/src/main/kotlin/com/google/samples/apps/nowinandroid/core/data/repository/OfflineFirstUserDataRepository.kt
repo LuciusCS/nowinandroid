@@ -30,6 +30,9 @@ internal class OfflineFirstUserDataRepository @Inject constructor(
     private val analyticsHelper: AnalyticsHelper,
 ) : UserDataRepository {
 
+    /**
+     * 在此调用        niaPreferencesDataSource.userData 对 userData进行初始化
+     */
     override val userData: Flow<UserData> =
         niaPreferencesDataSource.userData
 

@@ -29,8 +29,32 @@ import javax.inject.Inject
 class NiaPreferencesDataSource @Inject constructor(
     private val userPreferences: DataStore<UserPreferences>,
 ) {
+    /**
+     * userPreferences.data 是一个 Flow<UserPreferences> 类型，它代表了从 DataStore 中异步获取的用户偏好数据。
+     * 当您访问 userPreferences.data 时，它并不会立即从 DataStore 中获取数据，而是返回一个 Flow，该 Flow 将会在被收集时从 DataStore 中异步获取数据。
+     *
+     * Flow 是一个 Kotlin 的异步流类型，能够处理异步数据流的操作。它会发出一个或多个值，在每个值发生时，观察者（通常是 collect）会接收到这些值。
+     * 在这个示例中，map 操作符是对 Flow 数据流进行转换的函数，您可以对从 DataStore 获取到的数据做一些处理。当您在 Flow 上进行操作时，
+     * 它会在后台进行异步计算，且返回的结果只有在您显式收集时才会被执行。
+     *
+     * userPreferences.data 并不是立即从 DataStore 中读取数据，它只是返回了一个数据流（Flow）。数据只有在 Flow 被“收集”时（例如调用 collect），
+     * 才会从 DataStore 异步获取。
+     *
+     *
+     * Kotlin 支持异步初始化，Java 为什么没有类似机制
+     *
+     */
     val userData = userPreferences.data
         .map {
+
+            /**
+             * 为什么 userPreferences.data 中的字段是 0 而不是 null
+             * 在 proto3 中，所有字段都有默认值，而没有显式赋值时会自动使用这些默认值。
+             * 对于基本类型字段（如 int32、bool 等），这些默认值会是 0 或 false，因此在首次读取数据时，你会看到这些字段的默认值而不是 null。
+             *
+             *
+             *
+             */
             UserData(
                 bookmarkedNewsResources = it.bookmarkedNewsResourceIdsMap.keys,
                 viewedNewsResources = it.viewedNewsResourceIdsMap.keys,

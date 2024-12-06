@@ -35,10 +35,31 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
+/**
+ *
+ * @Module 注解用于标记这个类为一个 Dagger 模块。模块是依赖注入的容器，Dagger 会从这些模块中找到用于提供依赖的方法。
+ *
+ * @InstallIn 注解指定了模块将会在 Dagger Hilt 的哪个组件（Component）中进行安装。这个组件定义了这个模块提供的依赖的生命周期。
+ *
+ * SingletonComponent 是 Hilt 中的一个组件，它代表应用级别的生命周期，意味着该模块中的依赖会在应用生命周期内共享，通常用来提供单例服务。
+ * 这个注解的作用是告诉 Hilt 要在 SingletonComponent 中“安装”这个模块（DataModule）。模块中的依赖（通过 @Binds 或 @Provides 提供的依赖）
+ * 将被 Dagger Hilt 注入到需要它们的地方，并且这些依赖会在应用的整个生命周期内共享。
+ *
+ *
+ *
+ */
+
+
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
 
+    /**
+     * @Binds 注解用于告诉 Dagger Hilt 如何将接口 TopicsRepository 绑定到具体的实现 OfflineFirstTopicsRepository 上。
+     * 也就是说，当需要 TopicsRepository 依赖时，Dagger 会提供 OfflineFirstTopicsRepository 的实例。
+     * bindsTopicRepository 是一个抽象函数，它将 OfflineFirstTopicsRepository 类型的实例绑定到 TopicsRepository 接口上。
+     * Hilt 会自动识别并提供 OfflineFirstTopicsRepository 类型的实例，在应用中注入到 TopicsRepository 类型需要的地方。
+     */
     @Binds
     internal abstract fun bindsTopicRepository(
         topicsRepository: OfflineFirstTopicsRepository,

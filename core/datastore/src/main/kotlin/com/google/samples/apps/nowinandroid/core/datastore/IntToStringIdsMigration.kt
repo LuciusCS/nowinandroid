@@ -25,6 +25,12 @@ internal object IntToStringIdsMigration : DataMigration<UserPreferences> {
 
     override suspend fun cleanUp() = Unit
 
+    /***
+     * migrate 方法本身确实只负责数据的转换（即通过 copy 创建一个新的 UserPreferences 实例），并不直接执行保存操作。
+     * 保存是由 DataStore 框架 在调用 migrate 后自动完成的。这是 DataStore 的核心特性之一，它会在整个迁移过程中管理数据的持久化。
+     *
+     * 让我们详细分析这一过程：
+     */
     override suspend fun migrate(currentData: UserPreferences): UserPreferences =
         currentData.copy {
             // Migrate topic ids

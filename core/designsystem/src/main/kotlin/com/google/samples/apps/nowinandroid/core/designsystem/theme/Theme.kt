@@ -194,6 +194,12 @@ fun NiaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     androidTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
+    /**
+     * 在 NiaTheme 函数中，content 参数是一个 高阶函数，它的类型是 @Composable () -> Unit，表示：
+     *
+     * @Composable：这是一个 Compose 函数。
+     * () -> Unit：表示不接受任何参数，也不返回任何值的 Lambda 表达式。
+     */
     content: @Composable () -> Unit,
 ) {
     // Color scheme

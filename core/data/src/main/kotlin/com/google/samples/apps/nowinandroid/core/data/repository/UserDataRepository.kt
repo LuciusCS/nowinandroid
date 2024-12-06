@@ -21,10 +21,14 @@ import com.google.samples.apps.nowinandroid.core.model.data.ThemeBrand
 import com.google.samples.apps.nowinandroid.core.model.data.UserData
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * 具体实现在 OfflineFirstUserDataRepository 中
+ */
 interface UserDataRepository {
 
     /**
      * Stream of [UserData]
+     *
      */
     val userData: Flow<UserData>
 

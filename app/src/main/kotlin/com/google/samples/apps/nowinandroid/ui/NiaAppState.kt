@@ -67,6 +67,111 @@ import kotlinx.datetime.TimeZone
  * 这个结构确保了应用在使用 Jetpack Compose 和 Navigation 时的状态管理和性能跟踪，并且适应了高效的 UI 构建和性能分析需求。
  *
  *
+ *
+ * 1. rememberCoroutineScope()
+ * 来源
+ *
+ * 它是 Jetpack Compose 中的一个函数，定义在 androidx.compose.runtime 包中。
+ * 作用
+ *
+ * 在 Composable 中提供一个与当前 Composition 生命周期关联的协程作用域。
+ * 当 Composition 销毁时，该作用域会被取消，以避免内存泄漏。
+ * 常见用法
+ *
+ * rememberCoroutineScope() 通常用于启动协程，以执行异步任务，例如动画、数据加载等。
+ *
+ * 示例
+ *
+ * @Composable
+ * fun ExampleCoroutineScope() {
+ *     val scope = rememberCoroutineScope()
+ *
+ *     Button(onClick = {
+ *         scope.launch {
+ *             // 在此处启动协程
+ *             delay(1000)
+ *             println("Button clicked!")
+ *         }
+ *     }) {
+ *         Text("Click me")
+ *     }
+ * }
+ * 说明：
+ *
+ * 每次点击按钮时，都会启动一个新协程。
+ * 协程作用域与 Composable 生命周期绑定。当 Composable 离开屏幕时，所有在该作用域中启动的协程会自动取消。
+ *
+ *
+ *
+ * 2. rememberNavController()
+ * 来源
+ *
+ * 它是 Jetpack Compose Navigation 中的一个函数，定义在 androidx.navigation.compose 包中。
+ * 作用
+ *
+ * 提供一个 NavHostController，用于管理 Compose 中的导航操作。
+ * 它会记住并保持同一个 NavController 实例，直到 Composable 离开 Composition。
+ * 常见用法
+ *
+ * rememberNavController() 通常用于初始化 NavController，并将其传递给 NavHost 和导航相关的 Composable。
+ *
+ * 示例
+ *
+ * @Composable
+ * fun ExampleNavigation() {
+ *     val navController = rememberNavController()
+ *
+ *     NavHost(navController = navController, startDestination = "screen1") {
+ *         composable("screen1") {
+ *             Screen1(navController)
+ *         }
+ *         composable("screen2") {
+ *             Screen2(navController)
+ *         }
+ *     }
+ * }
+ *
+ * @Composable
+ * fun Screen1(navController: NavHostController) {
+ *     Column {
+ *         Text("Screen 1")
+ *         Button(onClick = {
+ *             navController.navigate("screen2")
+ *         }) {
+ *             Text("Go to Screen 2")
+ *         }
+ *     }
+ * }
+ *
+ * @Composable
+ * fun Screen2(navController: NavHostController) {
+ *     Column {
+ *         Text("Screen 2")
+ *         Button(onClick = {
+ *             navController.navigate("screen1")
+ *         }) {
+ *             Text("Back to Screen 1")
+ *         }
+ *     }
+ * }
+ * 说明：
+ *
+ * rememberNavController() 创建一个 NavController 实例。
+ * NavHost 和 composable 配置导航目的地。
+ * 通过 navController.navigate() 执行页面导航。
+ *
+ *
+ *
+ *
+ *
+ * 特性	        rememberCoroutineScope()                	rememberNavController()
+ * 功能       	提供一个与 Composable 生命周期绑定的协程作用域	提供一个与 Composable 生命周期绑定的导航控制器
+ * 来源	        androidx.compose.runtime	                androidx.navigation.compose
+ * 应用场景	        启动异步任务（如动画、网络请求）                	管理导航逻辑
+ * 示例使用对象	    scope.launch	                                navController.navigate()
+ *
+ *
+ *
  */
 @Composable
 fun rememberNiaAppState(
@@ -84,6 +189,13 @@ fun rememberNiaAppState(
     /**
      *
      * remember: 用于记住一个对象，确保在 Compose 重组期间保持相同的对象实例。将 navController、coroutineScope、networkMonitor、userNewsResourceRepository 和 timeZoneMonitor 作为依赖项。
+     *
+     *
+     * remember 的作用是将某个对象的状态 保留在当前的 Composition 中，即在 Composable 重组（Recomposition）时不会重新创建这个对象，从而 提高性能 并 保持状态的一致性。
+     *
+     * 如果不使用 remember，在每次重组时都会重新创建一个新的 NiaAppState 实例，这可能会导致：
+     * 不必要的资源消耗，特别是当 NiaAppState 内部有复杂的初始化逻辑时。
+     * 状态丢失，例如：如果 NiaAppState 管理导航、网络状态、或其他重要的共享状态，每次重组都会丢失这些状态，导致用户体验不一致。
      */
 
     return remember(
@@ -107,6 +219,9 @@ fun rememberNiaAppState(
  *
  * ChatGPT
  * 这个代码定义了一个名为 NiaAppState 的 Kotlin 类，用于管理应用程序的状态和导航逻辑，主要是在 Jetpack Compose 和 Navigation 组件中使用。
+ *
+ * https://juejin.cn/post/7360928627632373786
+ * 里面有 @Stable 的 解释
  *
  */
 
@@ -149,6 +264,31 @@ class NiaAppState(
     /**
      * currentTopLevelDestination: 返回当前顶层导航目标（如 FOR_YOU、BOOKMARKS、INTERESTS）。
      * when: 根据 currentDestination 的路由来判断当前是哪一个顶层目的地。
+     *
+     *
+     *
+     * 1. 自定义属性 Getter
+     *
+     * val currentDestination: NavDestination?
+     *     @Composable get() = ...
+     *
+     * 这是 Kotlin 的 自定义属性访问器（Custom Property Accessors），它允许你通过自定义逻辑来定义属性的值。
+     *
+     * 核心组成部分：
+     *      val currentDestination：声明一个只读属性（val）。
+     *      NavDestination?：属性类型，可空。
+     *      @Composable get()：自定义 getter 方法，带有 @Composable 注解。
+     *
+     * ...：实际的计算逻辑（在这里是基于 navController.currentBackStackEntryAsState()）。
+     * 解释：
+     * 当代码访问 currentDestination 属性时，实际上执行的是 get() 方法中的逻辑，而不是直接访问一个字段。
+     * 这是一个 声明式 getter，属性值并不是存储在内存中的静态值，而是根据 getter 的逻辑动态计算。
+     *
+     *
+     * 2. 为什么用 @Composable？
+     * @Composable 是 Jetpack Compose 的注解，用于标记函数或属性可以感知 Compose 的状态变化。通过使用 @Composable get()，
+     * currentDestination 属性被设计为可以响应 Compose 的状态变化。
+     *
      */
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
@@ -177,6 +317,13 @@ class NiaAppState(
      * Map of top level destinations to be used in the TopBar, BottomBar and NavRail. The key is the
      * route
      * 顶层导航目标的列表，通常用于顶部栏、底部栏或导航栏中。
+     *
+     * TopLevelDestination.entries：
+     * entries 是 Kotlin 为枚举类（enum class）自动生成的一个静态属性。
+     * 它返回一个包含该枚举类中所有枚举实例的列表，类型是 List<TopLevelDestination>。
+     *
+     * 将枚举 TopLevelDestination 中定义的所有枚举实例（FOR_YOU, BOOKMARKS, INTERESTS）作为一个列表赋值给 topLevelDestinations。
+     *
      */
     val topLevelDestinations: List<TopLevelDestination> = TopLevelDestination.entries
 
@@ -256,6 +403,8 @@ class NiaAppState(
 
 /**
  * Stores information about navigation events to be used with JankStats
+ * 用于存储与 JankStats 相关的导航事件信息。
+ *
  * @Composable: 标记函数为可组合函数，可以在 Compose UI 树中使用。
  * NavigationTrackingSideEffect: 定义一个私有的可组合函数，用于跟踪导航事件。
  */

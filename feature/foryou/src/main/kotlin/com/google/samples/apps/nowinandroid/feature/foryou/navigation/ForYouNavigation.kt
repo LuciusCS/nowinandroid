@@ -40,8 +40,12 @@ private const val DEEP_LINK_URI_PATTERN =
 /// 导航到 FOR_YOU_ROUTE 对应的界面。它接受 NavOptions 作为参数，以便设置导航选项（如过渡动画、返回堆栈等）。
 fun NavController.navigateToForYou(navOptions: NavOptions) = navigate(FOR_YOU_ROUTE, navOptions)
 
-
-///定义一个扩展函数 forYouScreen，用于在 NavGraphBuilder 中配置一个新屏幕。onTopicClick 是一个高阶函数，接收 String 类型参数，通常用于处理点击事件。
+/**
+ * 你可以在 NavHost 的 lambda 中直接调用 forYouScreen，就像调用 composable 一样。
+ * 这个函数内部实际上是通过 composable() 函数来定义导航目标的。
+ *
+ * 定义一个扩展函数 forYouScreen，用于在 NavGraphBuilder 中配置一个新屏幕。onTopicClick 是一个高阶函数，接收 String 类型参数，通常用于处理点击事件。
+ */
 fun NavGraphBuilder.forYouScreen(onTopicClick: (String) -> Unit) {
 
     ///通过 NavGraphBuilder中的composable 函数定义一个新的可组合项（Composable）
